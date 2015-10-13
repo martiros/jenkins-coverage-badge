@@ -1,0 +1,23 @@
+{
+  "name": "jenkins-php-coverage-badge",
+  "description": "Create shield.io badge from jenkins clover PHP coverage",
+  "version": "0.2.1",
+  "main": "server.js",
+  "dependencies": {
+    "express": "4.x",
+    "request": "2.53.0",
+    "xregexp": "^3.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "jenkins",
+    "badge",
+    "coverage",
+    "clover",
+    "php",
+    "shield.io"
+  ]
+}
