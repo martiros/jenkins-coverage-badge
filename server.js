@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
 var XRegExp = require('xregexp'),
+    http = require('http'),
     request = require('request'),
     express = require('express'),
     config = require('./config');
@@ -73,6 +74,7 @@ app.get('/project/:job/coverage/report', function(req,res) {
 });
 
 
-var server = app.listen(config.server.port, function() {
-  console.log('Listening on port %d...', server.address().port)
+var server = http.createServer(app);
+server.listen(config.server.port, function(){
+    console.log('Express server listening on port ' + server.address().port);
 });

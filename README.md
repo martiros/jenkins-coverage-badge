@@ -23,9 +23,7 @@ and link to coverage report
 
 ## Example
 
+[![Code Coverage](https://img.shields.io/badge/coverage-80%-brightgreen.svg)](http://host:port/project/:job/coverage/report) 
+```
 [![Code Coverage](http://host:port/project/:job/coverage/badge)](http://host:port/project/:job/coverage/report)
-
 ```
-[![Code Coverage](https://img.shields.io/badge/coverage-80%-brightgreen.svg)](http://host:port/project/:job/coverage/report)
-```
- 
