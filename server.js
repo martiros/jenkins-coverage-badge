@@ -4,35 +4,11 @@ var XRegExp = require('xregexp'),
     http = require('http'),
     request = require('request'),
     express = require('express'),
-    config = require('./config');
+    config = require('./config'),
+    BadgeStorage = require("./badge-storage");
 
 
 var app = express();
-
-function getCoverageBadgeUrl(percent, style) {
-  var noCoverageUrl = 'https://img.shields.io/badge/coverage-none-lightgrey.svg';
-  percent = parseInt(percent);
-  if (!percent) {
-    return noCoverageUrl;
-  }
-
-  var color = getCoverageBadgeColor(percent);
-  var badgeUrl = 'https://img.shields.io/badge/coverage-' + percent.toString() + '%-' + color + '.svg'
-
-  if (style) {
-    badgeUrl += '?style=' + style;
-  }
-  return badgeUrl;
-}
-
-function getCoverageBadgeColor(percent) {
-  if (percent < 20) {
-    return 'red'
-  } else if (percent < 80) {
-    return 'yellow'
-  }
-  return 'brightgreen'
-}
 
 function grabCoverageFromJenkins(cb, job) {
   var url = config.jenkins.host + '/job/' + job + '/';
@@ -51,9 +27,9 @@ function grabCoverageFromJenkins(cb, job) {
 
         var regex = XRegExp('Code Coverage - (?<percent>.*?)% \(.*?/.*? elements\)', 'g'),
             match = XRegExp.exec(body, regex),
-            codeCoverage = match ? match.percent : null;
+            codeCoverage = match ? parseInt(match.percent) : null;
 
-        return cb(getCoverageBadgeUrl(codeCoverage));
+        return cb(codeCoverage);
       }
   );
 }
@@ -62,8 +38,26 @@ app.get('/project/:job/coverage/badge', function(req,res) {
 
   var job = req.params.job;
   grabCoverageFromJenkins(
-      function(url){
-        res.redirect(url);
+      function(codeCoverage){
+
+          BadgeStorage.getBadge(function (badge){
+
+              if (!badge) {
+                  return res.status(500).send('Internal server error');
+              }
+
+              res.set('Content-Disposition', 'inline; filename="'+badge.filename+'"');
+              res.set('Content-Type', badge.filetype);
+
+              res.set('Cache-Control', 'no-cache, private');
+              res.set('Pragma', 'no-cache');
+              res.set('Etag', badge.id);
+              res.setHeader('Last-Modified', (new Date()).toUTCString());
+
+              res.send(badge.body);
+
+          }, codeCoverage);
+
       },
       job
   );
@@ -72,7 +66,6 @@ app.get('/project/:job/coverage/badge', function(req,res) {
 app.get('/project/:job/coverage/report', function(req,res) {
   res.redirect(config.jenkins.host + '/job/' + req.params.job + '/cloverphp/');
 });
-
 
 var server = http.createServer(app);
 server.listen(config.server.port, function(){
